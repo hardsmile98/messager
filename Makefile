@@ -10,5 +10,8 @@ down:
 migrate-up:
 	bash ./scripts/migrate.sh up
 
+migrate-down:
+	bash ./scripts/migrate.sh down
+
 init-kafka:
 	bash ./scripts/init-kafka.sh
