@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package presence.v1;
+
+import "protos/common/v1/common.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "messenger/protos/presence/v1;presencev1";
+
+service PresenceService {
+  rpc GetPresence(GetPresenceRequest) returns (common.v1.Presence);
+  rpc SetPresence(SetPresenceRequest) returns (common.v1.Presence);
+}
+
+message GetPresenceRequest {
+  string user_id = 1;
+}
+
+message SetPresenceRequest {
+  string user_id = 1;
+  bool online = 2;
+  google.protobuf.Timestamp last_seen = 3;
+}

@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package common.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "messenger/protos/common/v1;commonv1";
+
+message User {
+    string id = 1;
+    string username = 2;
+    string email = 3;
+    google.protobuf.Timestamp created_at = 4;
+}
+
+enum ChatType {
+    CHAT_TYPE_UNSPECIFIED = 0;
+    CHAT_TYPE_PRIVATE = 1;
+    CHAT_TYPE_GROUP = 2;
+}
+
+message Chat {
+    string id = 1;
+    ChatType type = 2;
+    repeated User members = 3;
+    google.protobuf.Timestamp created_at = 4;
+}
+
+message Message {
+    string id = 1;
+    string chat_id = 2;
+    string sender_id = 3;
+    string content = 4;
+    google.protobuf.Timestamp created_at = 5;
+}
+
+message Presence {
+    string user_id = 1;
+    bool online = 2;
+    google.protobuf.Timestamp last_seen = 3;
+}
+
+message ChatInfo {
+    Chat chat = 1;
+    Message last_message = 2;
+    int32 unread_count = 3;
+    Presence presence = 4;
+}

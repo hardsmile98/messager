@@ -15,3 +15,18 @@ migrate-down:
 
 init-kafka:
 	bash ./scripts/init-kafka.sh
+
+PROTO_ROOT := .
+PROTO_FILES := \
+	protos/common/v1/common.proto \
+	protos/auth/v1/auth.proto \
+	protos/chat/v1/chat.proto \
+	protos/message/v1/message.proto \
+	protos/presence/v1/presence.proto
+
+generate-protos:
+	protoc \
+		--proto_path=$(PROTO_ROOT) \
+		--go_out=paths=source_relative:$(PROTO_ROOT) \
+		--go-grpc_out=paths=source_relative:$(PROTO_ROOT) \
+		$(PROTO_FILES)
