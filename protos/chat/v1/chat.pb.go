@@ -7,9 +7,9 @@
 package chatv1
 
 import (
+	v1 "common/pkg/common/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	v1 "messenger/protos/common/v1"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -260,7 +260,7 @@ const file_protos_chat_v1_chat_proto_rawDesc = "" +
 	"\vChatService\x12G\n" +
 	"\x11CreatePrivateChat\x12!.chat.v1.CreatePrivateChatRequest\x1a\x0f.common.v1.Chat\x12K\n" +
 	"\fGetUserChats\x12\x1c.chat.v1.GetUserChatsRequest\x1a\x1d.chat.v1.GetUserChatsResponse\x12?\n" +
-	"\vGetChatInfo\x12\x1b.chat.v1.GetChatInfoRequest\x1a\x13.common.v1.ChatInfoB!Z\x1fmessenger/protos/chat/v1;chatv1b\x06proto3"
+	"\vGetChatInfo\x12\x1b.chat.v1.GetChatInfoRequest\x1a\x13.common.v1.ChatInfoB\x19Z\x17chat/pkg/chat/v1;chatv1b\x06proto3"
 
 var (
 	file_protos_chat_v1_chat_proto_rawDescOnce sync.Once

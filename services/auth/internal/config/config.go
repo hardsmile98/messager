@@ -10,8 +10,7 @@ import (
 type Config struct {
 	DBUri           string
 	RedisAddr       string
-	JWTPrivateKey   string
-	JWTPublicKey    string
+	JWTSecret       string
 	AccessTokenTTL  int
 	RefreshTokenTTL int
 }
@@ -25,10 +24,6 @@ func parseInt(duration string) int {
 		return 0
 	}
 
-	if d < 0 {
-		return 0
-	}
-
 	return d
 }
 
@@ -38,8 +33,7 @@ func LoadConfig() (*Config, error) {
 	cfg = Config{
 		DBUri:           os.Getenv("DB_URI"),
 		RedisAddr:       os.Getenv("REDIS_ADDR"),
-		JWTPrivateKey:   os.Getenv("JWT_PRIVATE_KEY"),
-		JWTPublicKey:    os.Getenv("JWT_PUBLIC_KEY"),
+		JWTSecret:       os.Getenv("JWT_SECRET"),
 		AccessTokenTTL:  parseInt(os.Getenv("ACCESS_TOKEN_TTL_MINUTES")),
 		RefreshTokenTTL: parseInt(os.Getenv("REFRESH_TOKEN_TTL_MINUTES")),
 	}

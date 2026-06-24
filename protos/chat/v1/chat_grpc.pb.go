@@ -7,11 +7,11 @@
 package chatv1
 
 import (
+	v1 "common/pkg/common/v1"
 	context "context"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	v1 "messenger/protos/common/v1"
 )
 
 // This is a compile-time assertion to ensure that this generated file

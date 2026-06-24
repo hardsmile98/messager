@@ -5,7 +5,7 @@ package presence.v1;
 import "protos/common/v1/common.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "messenger/protos/presence/v1;presencev1";
+option go_package = "presence/pkg/presence/v1;presencev1";
 
 service PresenceService {
   rpc GetPresence(GetPresenceRequest) returns (common.v1.Presence);

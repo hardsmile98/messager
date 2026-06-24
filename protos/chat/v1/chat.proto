@@ -4,7 +4,7 @@ package chat.v1;
 
 import "protos/common/v1/common.proto";
 
-option go_package = "messenger/protos/chat/v1;chatv1";
+option go_package = "chat/pkg/chat/v1;chatv1";
 
 service ChatService {
     rpc CreatePrivateChat(CreatePrivateChatRequest) returns (common.v1.Chat);
