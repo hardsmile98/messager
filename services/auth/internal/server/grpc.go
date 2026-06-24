@@ -12,11 +12,13 @@ import (
 )
 
 func RunGrpcServer(port string, service pb.AuthServiceServer) error {
-	lis, err := net.Listen("tcp", port)
+	lis, err := net.Listen("tcp", ":"+port)
 
 	if err != nil {
 		return fmt.Errorf("failed to listen: %v", err)
 	}
+
+	fmt.Println("Auth service running on port: ", lis.Addr().String())
 
 	srv := grpc.NewServer()
 

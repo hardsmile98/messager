@@ -44,12 +44,12 @@ services:
       context: ..
       dockerfile: services/auth/Dockerfile
     ports:
-      - 50051:50051
+      - 5001:5001
     environment:
       - DB_URI=postgres://postgres:postgres@postgres:5432/messager?sslmode=disable
       - REDIS_ADDR=redis:6379
-      - JWT_PRIVATE_KEY=JWT_PRIVATE_KEY
-      - JWT_PUBLIC_KEY=JWT_PUBLIC_KEY
+      - GRPC_PORT=5001
+      - JWT_SECRET=JWTSecret
       - ACCESS_TOKEN_TTL_MINUTES=15
       - REFRESH_TOKEN_TTL_MINUTES=43200
     depends_on:

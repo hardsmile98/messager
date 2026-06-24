@@ -1,8 +1,18 @@
-SERVICES := auth chat message media
+SERVICES := auth
 REGISTRY := localhost:5000
 
 up:
-	bash ./scripts/up.sh
+	bash ./scripts/up.sh $(SERVICES)
+
+up-infra:
+	bash ./scripts/up-infra.sh
+
+up-service:
+	@if [ -z "$(service)" ]; then echo "Usage: make up-service service=<name>"; exit 1; fi
+	bash ./scripts/up-service.sh $(service)
+
+up-services:
+	bash ./scripts/up-services.sh $(SERVICES)
 
 down:
 	docker-compose -f deploy/docker-compose.yml down
