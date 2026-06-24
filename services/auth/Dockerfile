@@ -2,8 +2,6 @@ FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
 
-ENV GOWORK=off
-
 COPY go.mod go.sum ./
 RUN go mod download
 
