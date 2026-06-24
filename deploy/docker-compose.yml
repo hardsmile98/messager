@@ -44,7 +44,7 @@ services:
       context: ..
       dockerfile: services/auth/Dockerfile
     ports:
-      - 8080:8080
+      - 50051:50051
     environment:
       - DB_URI=postgres://postgres:postgres@postgres:5432/messager?sslmode=disable
       - REDIS_ADDR=redis:6379

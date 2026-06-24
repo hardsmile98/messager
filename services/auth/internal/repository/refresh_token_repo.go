@@ -24,7 +24,6 @@ func (r *RefreshTokenRepo) CreateRefreshToken(ctx context.Context, refreshToken 
 		INSERT INTO refresh_tokens (user_id, token_hash, device, expires_at, created_at)
 		VALUES ($1, $2, $3, $4, $5)
 	`
-
 	_, err := r.pool.Exec(
 		ctx, query,
 		refreshToken.UserID,

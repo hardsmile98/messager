@@ -13,6 +13,7 @@ type Config struct {
 	JWTSecret       string
 	AccessTokenTTL  int
 	RefreshTokenTTL int
+	GRPCPort        string
 }
 
 var cfg Config
@@ -33,6 +34,7 @@ func LoadConfig() (*Config, error) {
 	cfg = Config{
 		DBUri:           os.Getenv("DB_URI"),
 		RedisAddr:       os.Getenv("REDIS_ADDR"),
+		GRPCPort:        os.Getenv("GRPC_PORT"),
 		JWTSecret:       os.Getenv("JWT_SECRET"),
 		AccessTokenTTL:  parseInt(os.Getenv("ACCESS_TOKEN_TTL_MINUTES")),
 		RefreshTokenTTL: parseInt(os.Getenv("REFRESH_TOKEN_TTL_MINUTES")),
