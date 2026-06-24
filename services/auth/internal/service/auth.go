@@ -2,8 +2,15 @@ package service
 
 import (
 	"auth/internal/config"
+	"auth/internal/model"
 	"auth/internal/repository"
+	"context"
+	"time"
+
 	pb "github.com/hardsmile98/messager/sdk/auth/v1"
+	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type AuthService struct {
@@ -23,4 +30,55 @@ func NewAuthService(
 		refreshTokenRepo: refreshTokenRepo,
 		config:           config,
 	}
+}
+
+func (s *AuthService) generateTokens(userID string) (string, string, error) {
+	return "", "", nil
+}
+
+func (s *AuthService) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
+	if req.Username == "" || req.Email == "" || req.Password == "" {
+		return nil, status.Error(codes.InvalidArgument, "username, email and password are required")
+	}
+
+	exists, err := s.userRepo.GetUserByUsername(ctx, req.Username)
+
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to check if username exists: %v", err)
+	}
+
+	if exists != nil {
+		return nil, status.Errorf(codes.AlreadyExists, "username already exists")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to hash password: %v", err)
+	}
+
+	user := &model.User{
+		Username:     req.Username,
+		Email:        req.Email,
+		PasswordHash: string(hashedPassword),
+		CreatedAt:    time.Now(),
+	}
+
+	id, err := s.userRepo.CreateUser(ctx, user)
+
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to create user: %v", err)
+	}
+
+	accessToken, refreshToken, err := s.generateTokens(id)
+
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to generate tokens: %v", err)
+	}
+
+	return &pb.RegisterResponse{
+		UserId:       id,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
 }
