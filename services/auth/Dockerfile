@@ -2,11 +2,17 @@ FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
+COPY sdk/go.mod sdk/go.sum* ./sdk/
+COPY services/auth/go.mod services/auth/go.sum ./services/auth/
+
+WORKDIR /app/services/auth
 RUN go mod download
 
-COPY . .
+WORKDIR /app
+COPY sdk ./sdk
+COPY services/auth ./services/auth
 
+WORKDIR /app/services/auth
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /server ./cmd/server
 
 FROM alpine:3.21

@@ -24,9 +24,12 @@ PROTO_FILES := \
 	protos/message/v1/message.proto \
 	protos/presence/v1/presence.proto
 
+SDK_DIR := sdk
+
 generate-protos:
 	protoc \
 		--proto_path=$(PROTO_ROOT) \
-		--go_out=paths=source_relative:$(PROTO_ROOT) \
-		--go-grpc_out=paths=source_relative:$(PROTO_ROOT) \
+		--go_out=$(SDK_DIR) --go_opt=module=sdk \
+		--go-grpc_out=$(SDK_DIR) --go-grpc_opt=module=sdk \
 		$(PROTO_FILES)
+	cd $(SDK_DIR) && go mod tidy
