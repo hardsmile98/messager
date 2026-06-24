@@ -2,9 +2,14 @@ package service
 
 import (
 	"auth/internal/config"
+	"auth/internal/jwt"
 	"auth/internal/model"
 	"auth/internal/repository"
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"time"
 
 	pb "github.com/hardsmile98/messager/sdk/auth/v1"
@@ -32,8 +37,54 @@ func NewAuthService(
 	}
 }
 
-func (s *AuthService) generateTokens(userID string) (string, string, error) {
-	return "", "", nil
+func (s *AuthService) generateRefreshToken() (string, string, error) {
+	b := make([]byte, 32)
+
+	_, err := rand.Read(b)
+
+	if err != nil {
+		return "", "", status.Errorf(codes.Internal, "failed to generate refresh token: %v", err)
+	}
+
+	token := base64.RawURLEncoding.EncodeToString(b)
+
+	hash := sha256.Sum256([]byte(token))
+
+	tokenHash := hex.EncodeToString(hash[:])
+
+	return token, tokenHash, nil
+}
+
+func (s *AuthService) generateTokens(ctx context.Context, userID string) (string, string, error) {
+	accessToken, err := jwt.GenerateToken(userID, s.config.JWTSecret, s.config.AccessTokenTTL)
+
+	if err != nil {
+		return "", "", status.Errorf(codes.Internal, "failed to generate access token: %v", err)
+	}
+
+	refresh, refreshHash, err := s.generateRefreshToken()
+
+	if err != nil {
+		return "", "", status.Errorf(codes.Internal, "failed to generate refresh token: %v", err)
+	}
+
+	expiresAt := time.Now().Add(time.Duration(s.config.RefreshTokenTTL) * time.Minute)
+
+	newRefreshToken := &model.RefreshToken{
+		UserID:    userID,
+		TokenHash: refreshHash,
+		Device:    "DEVICE_ID",
+		ExpiresAt: expiresAt,
+		CreatedAt: time.Now(),
+	}
+
+	err = s.refreshTokenRepo.SaveRefreshToken(ctx, newRefreshToken)
+
+	if err != nil {
+		return "", "", status.Errorf(codes.Internal, "failed to save refresh token: %v", err)
+	}
+
+	return accessToken, refresh, nil
 }
 
 func (s *AuthService) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
@@ -70,7 +121,7 @@ func (s *AuthService) Register(ctx context.Context, req *pb.RegisterRequest) (*p
 		return nil, status.Errorf(codes.Internal, "failed to create user: %v", err)
 	}
 
-	accessToken, refreshToken, err := s.generateTokens(id)
+	accessToken, refreshToken, err := s.generateTokens(ctx, id)
 
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to generate tokens: %v", err)

@@ -19,7 +19,7 @@ func NewRefreshTokenRepo(pool *pgxpool.Pool, redis *redis.Client) *RefreshTokenR
 	return &RefreshTokenRepo{pool, redis}
 }
 
-func (r *RefreshTokenRepo) CreateRefreshToken(ctx context.Context, refreshToken *model.RefreshToken) error {
+func (r *RefreshTokenRepo) SaveRefreshToken(ctx context.Context, refreshToken *model.RefreshToken) error {
 	query := `
 		INSERT INTO refresh_tokens (user_id, token_hash, device, expires_at, created_at)
 		VALUES ($1, $2, $3, $4, $5)
