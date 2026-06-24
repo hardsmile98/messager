@@ -12,6 +12,11 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
+type VerifyToken struct {
+	UserID    string    `json:"user_id"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
 func GenerateToken(userID string, secret string, ttlMinutes int) (string, error) {
 	claims := Claims{
 		UserID: userID,
@@ -25,7 +30,7 @@ func GenerateToken(userID string, secret string, ttlMinutes int) (string, error)
 	return token.SignedString([]byte(secret))
 }
 
-func ValidateToken(token string, secret string) (string, error) {
+func ValidateToken(token string, secret string) (VerifyToken, error) {
 	parsedToken, err := jwt.ParseWithClaims(token, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if token.Method != jwt.SigningMethodHS256 {
 			return "", errors.New("unexpected signing method")
@@ -35,14 +40,17 @@ func ValidateToken(token string, secret string) (string, error) {
 	})
 
 	if err != nil {
-		return "", err
+		return VerifyToken{}, err
 	}
 
 	claims, ok := parsedToken.Claims.(*Claims)
 
 	if !ok || !parsedToken.Valid {
-		return "", errors.New("invalid token")
+		return VerifyToken{}, errors.New("invalid token")
 	}
 
-	return claims.UserID, nil
+	return VerifyToken{
+		UserID:    claims.UserID,
+		ExpiresAt: claims.ExpiresAt.Time,
+	}, nil
 }

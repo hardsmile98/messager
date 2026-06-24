@@ -75,6 +75,21 @@ func (r *RefreshTokenRepo) IsBlacklisted(ctx context.Context, tokenHash string) 
 	return exists == 1, nil
 }
 
+func (r *RefreshTokenRepo) RevokeRefreshTokenByUserID(ctx context.Context, userID string) error {
+	query := `
+		DELETE FROM refresh_tokens
+		WHERE user_id = $1
+	`
+
+	_, err := r.pool.Exec(ctx, query, userID)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *RefreshTokenRepo) RevokeRefreshToken(ctx context.Context, tokenHash string, expiresAt time.Time) error {
 	query := `
 		DELETE FROM refresh_tokens
