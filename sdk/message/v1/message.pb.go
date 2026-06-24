@@ -7,12 +7,12 @@
 package messagev1
 
 import (
+	v1 "github.com/hardsmile98/messager/sdk/common/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
-	v1 "sdk/common/v1"
 	sync "sync"
 	unsafe "unsafe"
 )
@@ -339,7 +339,7 @@ const file_protos_message_v1_message_proto_rawDesc = "" +
 	"\vSendMessage\x12\x1e.message.v1.SendMessageRequest\x1a\x1f.message.v1.SendMessageResponse\x12N\n" +
 	"\vGetMessages\x12\x1e.message.v1.GetMessagesRequest\x1a\x1f.message.v1.GetMessagesResponse\x12C\n" +
 	"\n" +
-	"MarkAsRead\x12\x1d.message.v1.MarkAsReadRequest\x1a\x16.google.protobuf.EmptyB\x1aZ\x18sdk/message/v1;messagev1b\x06proto3"
+	"MarkAsRead\x12\x1d.message.v1.MarkAsReadRequest\x1a\x16.google.protobuf.EmptyB:Z8github.com/hardsmile98/messager/sdk/message/v1;messagev1b\x06proto3"
 
 var (
 	file_protos_message_v1_message_proto_rawDescOnce sync.Once

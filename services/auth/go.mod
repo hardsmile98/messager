@@ -7,7 +7,6 @@ require (
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/joho/godotenv v1.5.1
 	github.com/redis/go-redis/v9 v9.21.0
-	sdk v0.0.0
 )
 
 require (
@@ -24,5 +23,3 @@ require (
 	google.golang.org/grpc v1.79.2
 	google.golang.org/protobuf v1.36.11 // indirect
 )
-
-replace sdk => ../../sdk

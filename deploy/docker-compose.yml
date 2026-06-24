@@ -41,8 +41,8 @@ services:
 
   auth:
     build:
-      context: ..
-      dockerfile: services/auth/Dockerfile
+      context: ../services/auth
+      dockerfile: Dockerfile
     ports:
       - 5001:5001
     environment:

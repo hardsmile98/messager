@@ -447,7 +447,7 @@ const file_protos_common_v1_common_proto_rawDesc = "" +
 	"\bChatType\x12\x19\n" +
 	"\x15CHAT_TYPE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11CHAT_TYPE_PRIVATE\x10\x01\x12\x13\n" +
-	"\x0fCHAT_TYPE_GROUP\x10\x02B\x18Z\x16sdk/common/v1;commonv1b\x06proto3"
+	"\x0fCHAT_TYPE_GROUP\x10\x02B8Z6github.com/hardsmile98/messager/sdk/common/v1;commonv1b\x06proto3"
 
 var (
 	file_protos_common_v1_common_proto_rawDescOnce sync.Once

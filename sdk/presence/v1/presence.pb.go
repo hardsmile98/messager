@@ -7,11 +7,11 @@
 package presencev1
 
 import (
+	v1 "github.com/hardsmile98/messager/sdk/common/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
-	v1 "sdk/common/v1"
 	sync "sync"
 	unsafe "unsafe"
 )
@@ -140,7 +140,7 @@ const file_protos_presence_v1_presence_proto_rawDesc = "" +
 	"\tlast_seen\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\blastSeen2\x9b\x01\n" +
 	"\x0fPresenceService\x12C\n" +
 	"\vGetPresence\x12\x1f.presence.v1.GetPresenceRequest\x1a\x13.common.v1.Presence\x12C\n" +
-	"\vSetPresence\x12\x1f.presence.v1.SetPresenceRequest\x1a\x13.common.v1.PresenceB\x1cZ\x1asdk/presence/v1;presencev1b\x06proto3"
+	"\vSetPresence\x12\x1f.presence.v1.SetPresenceRequest\x1a\x13.common.v1.PresenceB<Z:github.com/hardsmile98/messager/sdk/presence/v1;presencev1b\x06proto3"
 
 var (
 	file_protos_presence_v1_presence_proto_rawDescOnce sync.Once

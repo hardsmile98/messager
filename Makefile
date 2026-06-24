@@ -36,10 +36,12 @@ PROTO_FILES := \
 
 SDK_DIR := sdk
 
+SDK_MODULE := github.com/hardsmile98/messager/sdk
+
 generate-protos:
 	protoc \
 		--proto_path=$(PROTO_ROOT) \
-		--go_out=$(SDK_DIR) --go_opt=module=sdk \
-		--go-grpc_out=$(SDK_DIR) --go-grpc_opt=module=sdk \
+		--go_out=$(SDK_DIR) --go_opt=module=$(SDK_MODULE) \
+		--go-grpc_out=$(SDK_DIR) --go-grpc_opt=module=$(SDK_MODULE) \
 		$(PROTO_FILES)
 	cd $(SDK_DIR) && go mod tidy

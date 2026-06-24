@@ -6,7 +6,7 @@ import "protos/common/v1/common.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
-option go_package = "sdk/message/v1;messagev1";
+option go_package = "github.com/hardsmile98/messager/sdk/message/v1;messagev1";
 
 service MessageService {
     rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);

@@ -5,7 +5,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	pb "sdk/auth/v1"
+	pb "github.com/hardsmile98/messager/sdk/auth/v1"
 	"syscall"
 
 	"google.golang.org/grpc"

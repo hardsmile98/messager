@@ -1,4 +1,4 @@
-module sdk
+module github.com/hardsmile98/messager/sdk
 
 go 1.26.3
 

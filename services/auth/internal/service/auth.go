@@ -3,7 +3,7 @@ package service
 import (
 	"auth/internal/config"
 	"auth/internal/repository"
-	pb "sdk/auth/v1"
+	pb "github.com/hardsmile98/messager/sdk/auth/v1"
 )
 
 type AuthService struct {

@@ -4,7 +4,7 @@ package common.v1;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "sdk/common/v1;commonv1";
+option go_package = "github.com/hardsmile98/messager/sdk/common/v1;commonv1";
 
 message User {
     string id = 1;
