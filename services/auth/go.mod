@@ -4,7 +4,7 @@ go 1.26.3
 
 require (
 	github.com/golang-jwt/jwt/v5 v5.3.1
-	github.com/hardsmile98/messager/sdk v0.0.0-20260624133431-98ac6052a400
+	github.com/hardsmile98/messager/sdk v0.0.0-20260624210125-03fc5087ee77
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/joho/godotenv v1.5.1
 	github.com/redis/go-redis/v9 v9.21.0
@@ -25,5 +25,3 @@ require (
 	google.golang.org/grpc v1.79.2
 	google.golang.org/protobuf v1.36.11
 )
-
-replace github.com/hardsmile98/messager/sdk => ../../sdk
