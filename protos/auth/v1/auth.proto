@@ -18,6 +18,7 @@ message RegisterRequest {
     string username = 1;
     string email = 2;
     string password = 3;
+    string device = 4;
 }
 
 message RegisterResponse {
@@ -29,6 +30,7 @@ message RegisterResponse {
 message LoginRequest {
     string username = 1;
     string password = 2;
+    string device = 3;
 }
 
 message LoginResponse {
@@ -38,7 +40,7 @@ message LoginResponse {
 }
 
 message LogoutRequest {
-    string user_id = 1;
+    string refresh_token = 1;
 }
 
 message LogoutResponse {

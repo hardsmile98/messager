@@ -7,60 +7,59 @@ import (
 	"auth/internal/service"
 	"context"
 	"log"
+	"log/slog"
+	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 )
 
-func initPool(dbUri string) (*pgxpool.Pool, error) {
-	pool, err := pgxpool.New(context.Background(), dbUri)
+func main() {
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+
+	cfg, err := config.LoadConfig()
 
 	if err != nil {
-		return nil, err
+		log.Fatalf("failed to load config: %v", err)
 	}
 
-	defer pool.Close()
+	ctx := context.Background()
 
-	return pool, nil
-}
+	pool, err := pgxpool.New(ctx, cfg.DBUri)
 
-func initRedis(redisAddr string) (*redis.Client, error) {
-	redis := redis.NewClient(&redis.Options{
-		Addr: redisAddr,
+	if err != nil {
+		log.Fatalf("failed to initialize database pool: %v", err)
+	}
+
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: cfg.RedisAddr,
 	})
 
-	_, err := redis.Ping(context.Background()).Result()
-
-	return redis, err
-}
-
-func main() {
-	config, err := config.LoadConfig()
-
-	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
-	}
-
-	pool, err := initPool(config.DBUri)
-
-	if err != nil {
-		log.Fatalf("Failed to initialize database pool: %v", err)
-	}
-
-	redis, err := initRedis(config.RedisAddr)
-
-	if err != nil {
-		log.Fatalf("Failed to initialize Redis: %v", err)
+	if _, err := redisClient.Ping(ctx).Result(); err != nil {
+		pool.Close()
+		log.Fatalf("failed to initialize redis: %v", err)
 	}
 
 	userRepo := repository.NewUserRepo(pool)
-	refreshTokenRepo := repository.NewRefreshTokenRepo(pool, redis)
+	refreshTokenRepo := repository.NewRefreshTokenRepo(pool, redisClient)
 
-	authService := service.NewAuthService(userRepo, refreshTokenRepo, config)
+	authService := service.NewAuthService(userRepo, refreshTokenRepo, cfg)
 
-	err = server.RunGrpcServer(config.GRPCPort, authService)
+	cleanup := func() {
+		pool.Close()
+
+		if err := redisClient.Close(); err != nil {
+			slog.Error("failed to close redis client", "error", err)
+		}
+	}
+
+	err = server.RunGrpcServer(cfg.GRPCPort, authService, server.Dependencies{
+		Config:           cfg,
+		RefreshTokenRepo: refreshTokenRepo,
+	}, cleanup)
 
 	if err != nil {
-		log.Fatalf("Failed to run gRPC server: %v", err)
+		cleanup()
+		log.Fatalf("failed to run gRPC server: %v", err)
 	}
 }

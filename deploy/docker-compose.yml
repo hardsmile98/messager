@@ -48,7 +48,7 @@ services:
       - DB_URI=postgres://postgres:postgres@postgres:5432/messager?sslmode=disable
       - REDIS_ADDR=redis:6379
       - GRPC_PORT=5001
-      - JWT_SECRET=JWTSecret
+      - JWT_SECRET=jwt-secret-change-me-in-production-32chars
       - ACCESS_TOKEN_TTL_MINUTES=15
       - REFRESH_TOKEN_TTL_MINUTES=43200
     depends_on:

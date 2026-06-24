@@ -2,11 +2,22 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"auth/internal/model"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+type UserRepository interface {
+	CreateUser(ctx context.Context, user *model.User) (string, error)
+	GetUserByID(ctx context.Context, id string) (*model.User, error)
+	GetUserByUsername(ctx context.Context, username string) (*model.User, error)
+	GetUserByEmail(ctx context.Context, email string) (*model.User, error)
+	UpdateUser(ctx context.Context, user *model.User) error
+	DeleteUser(ctx context.Context, id string) error
+}
 
 type UserRepo struct {
 	pool *pgxpool.Pool
@@ -53,7 +64,15 @@ func (r *UserRepo) GetUserByID(ctx context.Context, id string) (*model.User, err
 		&user.CreatedAt,
 	)
 
-	return &user, err
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &user, nil
 }
 
 func (r *UserRepo) GetUserByUsername(ctx context.Context, username string) (*model.User, error) {
@@ -73,7 +92,15 @@ func (r *UserRepo) GetUserByUsername(ctx context.Context, username string) (*mod
 		&user.CreatedAt,
 	)
 
-	return &user, err
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &user, nil
 }
 
 func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {
@@ -93,7 +120,15 @@ func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (*model.Use
 		&user.CreatedAt,
 	)
 
-	return &user, err
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &user, nil
 }
 
 func (r *UserRepo) UpdateUser(ctx context.Context, user *model.User) error {

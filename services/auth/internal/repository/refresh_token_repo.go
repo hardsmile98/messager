@@ -3,12 +3,22 @@ package repository
 import (
 	"auth/internal/model"
 	"context"
-	"database/sql"
+	"errors"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 )
+
+type RefreshTokenRepository interface {
+	SaveRefreshToken(ctx context.Context, refreshToken *model.RefreshToken) error
+	GetRefreshToken(ctx context.Context, tokenHash string) (*model.RefreshToken, error)
+	IsBlacklisted(ctx context.Context, tokenHash string) (bool, error)
+	RevokeRefreshToken(ctx context.Context, tokenHash, userID string, expiresAt time.Time) error
+	RevokeRefreshTokenByUserID(ctx context.Context, userID string) error
+	GetBlacklistedUserID(ctx context.Context, tokenHash string) (string, error)
+}
 
 type RefreshTokenRepo struct {
 	pool  *pgxpool.Pool
@@ -55,14 +65,14 @@ func (r *RefreshTokenRepo) GetRefreshToken(ctx context.Context, tokenHash string
 	)
 
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
 		}
 
 		return nil, err
 	}
 
-	return &refreshToken, err
+	return &refreshToken, nil
 }
 
 func (r *RefreshTokenRepo) IsBlacklisted(ctx context.Context, tokenHash string) (bool, error) {
@@ -73,6 +83,20 @@ func (r *RefreshTokenRepo) IsBlacklisted(ctx context.Context, tokenHash string) 
 	}
 
 	return exists == 1, nil
+}
+
+func (r *RefreshTokenRepo) GetBlacklistedUserID(ctx context.Context, tokenHash string) (string, error) {
+	userID, err := r.redis.Get(ctx, "blacklist:"+tokenHash).Result()
+
+	if err == redis.Nil {
+		return "", nil
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	return userID, nil
 }
 
 func (r *RefreshTokenRepo) RevokeRefreshTokenByUserID(ctx context.Context, userID string) error {
@@ -90,7 +114,7 @@ func (r *RefreshTokenRepo) RevokeRefreshTokenByUserID(ctx context.Context, userI
 	return nil
 }
 
-func (r *RefreshTokenRepo) RevokeRefreshToken(ctx context.Context, tokenHash string, expiresAt time.Time) error {
+func (r *RefreshTokenRepo) RevokeRefreshToken(ctx context.Context, tokenHash, userID string, expiresAt time.Time) error {
 	query := `
 		DELETE FROM refresh_tokens
 		WHERE token_hash = $1
@@ -105,7 +129,7 @@ func (r *RefreshTokenRepo) RevokeRefreshToken(ctx context.Context, tokenHash str
 	ttl := time.Until(expiresAt)
 
 	if ttl > 0 {
-		err = r.redis.Set(ctx, "blacklist:"+tokenHash, "1", ttl).Err()
+		err = r.redis.Set(ctx, "blacklist:"+tokenHash, userID, ttl).Err()
 
 		if err != nil {
 			return err
