@@ -81,10 +81,6 @@ func LoadConfig() (*Config, error) {
 
 	corsOrigins := os.Getenv("CORS_ALLOWED_ORIGINS")
 
-	if corsOrigins == "" {
-		corsOrigins = "http://localhost:3000,http://localhost:5173"
-	}
-
 	cfg := &Config{
 		Port:                  os.Getenv("PORT"),
 		AuthGRPCURL:           os.Getenv("AUTH_GRPC_URL"),

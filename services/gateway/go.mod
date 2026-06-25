@@ -4,7 +4,7 @@ go 1.26.3
 
 require (
 	github.com/go-playground/validator/v10 v10.30.3
-	github.com/hardsmile98/messager/sdk v0.0.0-20260624210433-4e8050d6a557
+	github.com/hardsmile98/messager/sdk v0.0.0-20260625144218-570977dc1204
 	github.com/joho/godotenv v1.5.1
 )
 
