@@ -61,34 +61,36 @@ func generateRefreshToken() (string, string, error) {
 	return token, hashToken(token), nil
 }
 
-func (s *AuthService) generateTokens(ctx context.Context, userID, device string) (string, string, error) {
-	accessToken, err := jwt.GenerateToken(userID, s.config.JWTSecret, s.config.AccessTokenTTL)
+func (s *AuthService) generateTokens(ctx context.Context, userID, device string) (string, string, time.Time, time.Time, error) {
+	accessToken, accessExpiresAt, err := jwt.GenerateToken(userID, s.config.JWTSecret, s.config.AccessTokenTTL)
 
 	if err != nil {
-		return "", "", errors.InternalError(ctx, "failed to generate access token", err)
+		return "", "", time.Time{}, time.Time{}, errors.InternalError(ctx, "failed to generate access token", err)
 	}
 
 	refresh, refreshHash, err := generateRefreshToken()
 
 	if err != nil {
-		return "", "", errors.InternalError(ctx, "failed to generate refresh token", err)
+		return "", "", time.Time{}, time.Time{}, errors.InternalError(ctx, "failed to generate refresh token", err)
 	}
 
 	now := time.Now()
+
+	refreshExpiresAt := now.Add(time.Duration(s.config.RefreshTokenTTL) * time.Minute)
 
 	newRefreshToken := &model.RefreshToken{
 		UserID:    userID,
 		TokenHash: refreshHash,
 		Device:    device,
-		ExpiresAt: now.Add(time.Duration(s.config.RefreshTokenTTL) * time.Minute),
+		ExpiresAt: refreshExpiresAt,
 		CreatedAt: now,
 	}
 
 	if err := s.refreshTokenRepo.SaveRefreshToken(ctx, newRefreshToken); err != nil {
-		return "", "", errors.InternalError(ctx, "failed to save refresh token", err)
+		return "", "", time.Time{}, time.Time{}, errors.InternalError(ctx, "failed to save refresh token", err)
 	}
 
-	return accessToken, refresh, nil
+	return accessToken, refresh, accessExpiresAt, refreshExpiresAt, nil
 }
 
 func (s *AuthService) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
@@ -135,16 +137,18 @@ func (s *AuthService) Register(ctx context.Context, req *pb.RegisterRequest) (*p
 		return nil, errors.InternalError(ctx, "failed to create user", err)
 	}
 
-	accessToken, refreshToken, err := s.generateTokens(ctx, id, req.Device)
+	accessToken, refreshToken, accessExpiresAt, refreshExpiresAt, err := s.generateTokens(ctx, id, req.Device)
 
 	if err != nil {
 		return nil, err
 	}
 
 	return &pb.RegisterResponse{
-		UserId:       id,
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		UserId:                id,
+		AccessToken:           accessToken,
+		RefreshToken:          refreshToken,
+		AccessTokenExpiresAt:  timestamppb.New(accessExpiresAt),
+		RefreshTokenExpiresAt: timestamppb.New(refreshExpiresAt),
 	}, nil
 }
 
@@ -167,16 +171,18 @@ func (s *AuthService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 		return nil, errors.Unauthenticated("invalid credentials")
 	}
 
-	accessToken, refreshToken, err := s.generateTokens(ctx, user.ID, req.Device)
+	accessToken, refreshToken, accessExpiresAt, refreshExpiresAt, err := s.generateTokens(ctx, user.ID, req.Device)
 
 	if err != nil {
 		return nil, err
 	}
 
 	return &pb.LoginResponse{
-		UserId:       user.ID,
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		UserId:                user.ID,
+		AccessToken:           accessToken,
+		RefreshToken:          refreshToken,
+		AccessTokenExpiresAt:  timestamppb.New(accessExpiresAt),
+		RefreshTokenExpiresAt: timestamppb.New(refreshExpiresAt),
 	}, nil
 }
 
@@ -233,7 +239,7 @@ func (s *AuthService) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequ
 		return nil, errors.Unauthenticated("invalid refresh token")
 	}
 
-	accessToken, newRefreshToken, err := s.generateTokens(ctx, refreshToken.UserID, refreshToken.Device)
+	accessToken, newRefreshToken, accessExpiresAt, refreshExpiresAt, err := s.generateTokens(ctx, refreshToken.UserID, refreshToken.Device)
 
 	if err != nil {
 		return nil, err
@@ -244,8 +250,10 @@ func (s *AuthService) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequ
 	}
 
 	return &pb.RefreshTokenResponse{
-		AccessToken:  accessToken,
-		RefreshToken: newRefreshToken,
+		AccessToken:           accessToken,
+		RefreshToken:          newRefreshToken,
+		AccessTokenExpiresAt:  timestamppb.New(accessExpiresAt),
+		RefreshTokenExpiresAt: timestamppb.New(refreshExpiresAt),
 	}, nil
 }
 

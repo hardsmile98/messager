@@ -3,8 +3,11 @@ package handler
 import (
 	"net/http"
 
+	"gateway/internal/config"
+	"gateway/internal/transport/http/cookie"
 	"gateway/internal/transport/http/dto"
 	"gateway/internal/transport/http/helpers"
+	"gateway/internal/transport/http/middleware"
 	"gateway/internal/transport/http/response"
 	"gateway/internal/validation"
 
@@ -12,11 +15,18 @@ import (
 )
 
 type Auth struct {
-	client pb.AuthServiceClient
+	client       pb.AuthServiceClient
+	cookieConfig cookie.Settings
 }
 
-func NewAuth(client pb.AuthServiceClient) *Auth {
-	return &Auth{client: client}
+func NewAuth(client pb.AuthServiceClient, cfg *config.Config) *Auth {
+	return &Auth{
+		client: client,
+		cookieConfig: cookie.Settings{
+			Secure: cfg.CookieSecure,
+			Domain: cfg.CookieDomain,
+		},
+	}
 }
 
 func (h *Auth) Register(w http.ResponseWriter, r *http.Request) {
@@ -38,10 +48,13 @@ func (h *Auth) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	cookie.SetAuthTokens(w, resp.AccessToken, resp.RefreshToken, cookie.TokenExpiry{
+		AccessExpiresAt:  resp.AccessTokenExpiresAt.AsTime(),
+		RefreshExpiresAt: resp.RefreshTokenExpiresAt.AsTime(),
+	}, h.cookieConfig)
+
 	response.JSON(w, http.StatusOK, map[string]string{
-		"user_id":       resp.UserId,
-		"access_token":  resp.AccessToken,
-		"refresh_token": resp.RefreshToken,
+		"user_id": resp.UserId,
 	})
 }
 
@@ -63,28 +76,35 @@ func (h *Auth) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	cookie.SetAuthTokens(w, resp.AccessToken, resp.RefreshToken, cookie.TokenExpiry{
+		AccessExpiresAt:  resp.AccessTokenExpiresAt.AsTime(),
+		RefreshExpiresAt: resp.RefreshTokenExpiresAt.AsTime(),
+	}, h.cookieConfig)
+
 	response.JSON(w, http.StatusOK, map[string]string{
-		"user_id":       resp.UserId,
-		"access_token":  resp.AccessToken,
-		"refresh_token": resp.RefreshToken,
+		"user_id": resp.UserId,
 	})
 }
 
 func (h *Auth) Logout(w http.ResponseWriter, r *http.Request) {
-	var req dto.RefreshTokenRequest
+	refreshToken, ok := middleware.RefreshTokenFromContext(r)
 
-	if err := validation.DecodeAndValidate(r, &req); err != nil {
-		response.RequestError(w, err)
+	if !ok {
+		response.JSON(w, http.StatusUnauthorized, map[string]string{
+			"error": "session required",
+		})
 		return
 	}
 
 	resp, err := h.client.Logout(r.Context(), &pb.LogoutRequest{
-		RefreshToken: req.RefreshToken,
+		RefreshToken: refreshToken,
 	})
 	if err != nil {
 		response.GRPCError(w, err)
 		return
 	}
+
+	cookie.ClearAuthTokens(w, h.cookieConfig)
 
 	response.JSON(w, http.StatusOK, map[string]bool{
 		"success": resp.Success,
@@ -92,23 +112,29 @@ func (h *Auth) Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Auth) RefreshToken(w http.ResponseWriter, r *http.Request) {
-	var req dto.RefreshTokenRequest
+	refreshToken, ok := middleware.RefreshTokenFromContext(r)
 
-	if err := validation.DecodeAndValidate(r, &req); err != nil {
-		response.RequestError(w, err)
+	if !ok {
+		response.JSON(w, http.StatusUnauthorized, map[string]string{
+			"error": "session required",
+		})
 		return
 	}
 
 	resp, err := h.client.RefreshToken(r.Context(), &pb.RefreshTokenRequest{
-		RefreshToken: req.RefreshToken,
+		RefreshToken: refreshToken,
 	})
 	if err != nil {
 		response.GRPCError(w, err)
 		return
 	}
 
-	response.JSON(w, http.StatusOK, map[string]string{
-		"access_token":  resp.AccessToken,
-		"refresh_token": resp.RefreshToken,
+	cookie.SetAuthTokens(w, resp.AccessToken, resp.RefreshToken, cookie.TokenExpiry{
+		AccessExpiresAt:  resp.AccessTokenExpiresAt.AsTime(),
+		RefreshExpiresAt: resp.RefreshTokenExpiresAt.AsTime(),
+	}, h.cookieConfig)
+
+	response.JSON(w, http.StatusOK, map[string]bool{
+		"success": true,
 	})
 }

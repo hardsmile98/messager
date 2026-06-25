@@ -17,17 +17,25 @@ type VerifyToken struct {
 	ExpiresAt time.Time
 }
 
-func GenerateToken(userID, secret string, ttlMinutes int) (string, error) {
+func GenerateToken(userID, secret string, ttlMinutes int) (string, time.Time, error) {
+	expiresAt := time.Now().Add(time.Duration(ttlMinutes) * time.Minute)
+
 	claims := Claims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(ttlMinutes) * time.Minute)),
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	return token.SignedString([]byte(secret))
+	signed, err := token.SignedString([]byte(secret))
+
+	if err != nil {
+		return "", time.Time{}, err
+	}
+
+	return signed, expiresAt, nil
 }
 
 func ValidateToken(token, secret string) (VerifyToken, error) {

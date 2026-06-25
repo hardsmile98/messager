@@ -32,7 +32,7 @@ func RunHTTPServer(conf *config.Config) error {
 
 	srv := &http.Server{
 		Addr:              ":" + conf.Port,
-		Handler:           httptransport.NewRouter(authClient),
+		Handler:           httptransport.NewRouter(authClient, conf),
 		ReadTimeout:       conf.HTTPReadTimeout,
 		WriteTimeout:      conf.HTTPWriteTimeout,
 		IdleTimeout:       conf.HTTPIdleTimeout,

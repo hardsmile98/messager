@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -17,6 +18,9 @@ type Config struct {
 	HTTPWriteTimeout      time.Duration
 	HTTPIdleTimeout       time.Duration
 	HTTPReadHeaderTimeout time.Duration
+	CookieSecure          bool
+	CookieDomain          string
+	CORSAllowedOrigins    []string
 }
 
 func parseDurationSeconds(envKey string, defaultSeconds int) (time.Duration, error) {
@@ -35,6 +39,19 @@ func parseDurationSeconds(envKey string, defaultSeconds int) (time.Duration, err
 	}
 
 	return time.Duration(seconds) * time.Second, nil
+}
+
+func splitCSV(value string) []string {
+	parts := strings.Split(value, ",")
+	origins := make([]string, 0, len(parts))
+
+	for _, part := range parts {
+		if origin := strings.TrimSpace(part); origin != "" {
+			origins = append(origins, origin)
+		}
+	}
+
+	return origins
 }
 
 func LoadConfig() (*Config, error) {
@@ -60,6 +77,14 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 
+	cookieSecure := os.Getenv("COOKIE_SECURE") == "true"
+
+	corsOrigins := os.Getenv("CORS_ALLOWED_ORIGINS")
+
+	if corsOrigins == "" {
+		corsOrigins = "http://localhost:3000,http://localhost:5173"
+	}
+
 	cfg := &Config{
 		Port:                  os.Getenv("PORT"),
 		AuthGRPCURL:           os.Getenv("AUTH_GRPC_URL"),
@@ -67,6 +92,9 @@ func LoadConfig() (*Config, error) {
 		HTTPWriteTimeout:      httpWriteTimeout,
 		HTTPIdleTimeout:       httpIdleTimeout,
 		HTTPReadHeaderTimeout: httpReadHeaderTimeout,
+		CookieSecure:          cookieSecure,
+		CookieDomain:          os.Getenv("COOKIE_DOMAIN"),
+		CORSAllowedOrigins:    splitCSV(corsOrigins),
 	}
 
 	if err := cfg.validate(); err != nil {
