@@ -1,4 +1,4 @@
-package handler
+package response
 
 import (
 	"context"
@@ -6,28 +6,43 @@ import (
 	"errors"
 	"net/http"
 
+	"gateway/internal/validation"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func writeJson(w http.ResponseWriter, status int, data interface{}) {
+func JSON(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(data)
 }
 
-func writeGrpcError(w http.ResponseWriter, err error) {
+func RequestError(w http.ResponseWriter, err error) {
+	if fields := validation.FieldErrors(err); len(fields) > 0 {
+		JSON(w, http.StatusBadRequest, map[string]any{
+			"error":  "validation failed",
+			"fields": fields,
+		})
+		return
+	}
+
+	JSON(w, http.StatusBadRequest, map[string]string{
+		"error": "invalid request body",
+	})
+}
+
+func GRPCError(w http.ResponseWriter, err error) {
 	if errors.Is(err, context.DeadlineExceeded) {
-		writeJson(w, http.StatusGatewayTimeout, map[string]string{
+		JSON(w, http.StatusGatewayTimeout, map[string]string{
 			"error": "request timeout",
 		})
 		return
 	}
 
 	st, ok := status.FromError(err)
-
 	if !ok {
-		writeJson(w, http.StatusInternalServerError, map[string]string{
+		JSON(w, http.StatusInternalServerError, map[string]string{
 			"error": "internal server error",
 		})
 		return
@@ -50,7 +65,7 @@ func writeGrpcError(w http.ResponseWriter, err error) {
 		httpStatus = http.StatusGatewayTimeout
 	}
 
-	writeJson(w, httpStatus, map[string]string{
+	JSON(w, httpStatus, map[string]string{
 		"error": st.Message(),
 	})
 }

@@ -1,20 +1,20 @@
-package server
+package httptransport
 
 import (
-	"gateway/internal/config"
-	"gateway/internal/handler"
-	"gateway/internal/middleware"
 	"net/http"
+
+	"gateway/internal/transport/http/handler"
+	"gateway/internal/transport/http/middleware"
 
 	"github.com/go-chi/chi/v5"
 	pb "github.com/hardsmile98/messager/sdk/auth/v1"
 )
 
-func newRouter(authClient pb.AuthServiceClient, conf *config.Config) http.Handler {
-	authHandler := handler.NewAuthHandler(authClient)
+func NewRouter(authClient pb.AuthServiceClient) http.Handler {
+	authHandler := handler.NewAuth(authClient)
 
 	r := chi.NewRouter()
-	r.Use(middleware.CorsMiddleware)
+	r.Use(middleware.CORS)
 
 	r.Post("/api/v1/auth/register", authHandler.Register)
 	r.Post("/api/v1/auth/login", authHandler.Login)

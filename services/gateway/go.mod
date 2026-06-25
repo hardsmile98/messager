@@ -3,16 +3,25 @@ module gateway
 go 1.26.3
 
 require (
+	github.com/go-playground/validator/v10 v10.30.3
 	github.com/hardsmile98/messager/sdk v0.0.0-20260624210433-4e8050d6a557
 	github.com/joho/godotenv v1.5.1
 )
 
 require (
+	github.com/gabriel-vasile/mimetype v1.4.13 // indirect
+	github.com/go-playground/locales v0.14.1 // indirect
+	github.com/go-playground/universal-translator v0.18.1 // indirect
+	github.com/leodido/go-urn v1.4.0 // indirect
+	golang.org/x/crypto v0.52.0 // indirect
+)
+
+require (
 	github.com/go-chi/chi/v5 v5.3.0
-	golang.org/x/net v0.48.0 // indirect
-	golang.org/x/sys v0.39.0 // indirect
-	golang.org/x/text v0.32.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
-	google.golang.org/grpc v1.79.2
+	golang.org/x/net v0.54.0 // indirect
+	golang.org/x/sys v0.45.0 // indirect
+	golang.org/x/text v0.37.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260226221140-a57be14db171 // indirect
+	google.golang.org/grpc v1.81.1
 	google.golang.org/protobuf v1.36.11 // indirect
 )
