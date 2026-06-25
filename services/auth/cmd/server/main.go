@@ -6,7 +6,6 @@ import (
 	"auth/internal/server"
 	"auth/internal/service"
 	"context"
-	"log"
 	"log/slog"
 	"os"
 
@@ -20,7 +19,7 @@ func main() {
 	cfg, err := config.LoadConfig()
 
 	if err != nil {
-		log.Fatalf("failed to load config: %v", err)
+		slog.Error("failed to load config", "error", err)
 	}
 
 	ctx := context.Background()
@@ -28,7 +27,7 @@ func main() {
 	pool, err := pgxpool.New(ctx, cfg.DBUri)
 
 	if err != nil {
-		log.Fatalf("failed to initialize database pool: %v", err)
+		slog.Error("failed to initialize database pool", "error", err)
 	}
 
 	redisClient := redis.NewClient(&redis.Options{
@@ -36,8 +35,8 @@ func main() {
 	})
 
 	if _, err := redisClient.Ping(ctx).Result(); err != nil {
+		slog.Error("failed to initialize redis", "error", err)
 		pool.Close()
-		log.Fatalf("failed to initialize redis: %v", err)
 	}
 
 	userRepo := repository.NewUserRepo(pool)
@@ -60,6 +59,6 @@ func main() {
 
 	if err != nil {
 		cleanup()
-		log.Fatalf("failed to run gRPC server: %v", err)
+		slog.Error("failed to run gRPC server", "error", err)
 	}
 }

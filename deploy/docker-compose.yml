@@ -38,6 +38,20 @@ services:
     networks:
       - messager
 
+  gateway:
+    build:
+      context: ../services/gateway
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    environment:
+      - PORT=8080
+      - AUTH_GRPC_URL=auth:5001
+    depends_on:
+      - auth
+    networks:
+      - messager
+
   auth:
     build:
       context: ../services/auth

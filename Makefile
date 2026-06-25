@@ -1,4 +1,4 @@
-SERVICES := auth
+SERVICES := auth gateway
 REGISTRY := localhost:5000
 
 up:
