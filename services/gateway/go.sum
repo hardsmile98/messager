@@ -1,5 +1,7 @@
 github.com/go-chi/chi v1.5.5 h1:vOB/HbEMt9QqBqErz07QehcOKHaWFtuj87tTDVz2qXE=
 github.com/go-chi/chi v1.5.5/go.mod h1:C9JqLr3tIYjDOZpzn+BCuxY8z8vmca43EeMgyZt7irw=
+github.com/go-chi/chi/v5 v5.3.0 h1:halUjDxhshgXHMrao5bB8eNBXo/rnzwr8m5m36glehM=
+github.com/go-chi/chi/v5 v5.3.0/go.mod h1:R+tYY2hNuVUUjxoPtqUdgBqevM9s9njzkTLutVsOCto=
 github.com/hardsmile98/messager/sdk v0.0.0-20260624210433-4e8050d6a557 h1:U4XU8aVAitrb0sJyGZ5XEUsv3dUYHe4d2ar1Atd8rBQ=
 github.com/hardsmile98/messager/sdk v0.0.0-20260624210433-4e8050d6a557/go.mod h1:p2qsYZkEJzipmLTEsg2wg7Th7jc3QNfjksVmbgHnhU0=
 github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=

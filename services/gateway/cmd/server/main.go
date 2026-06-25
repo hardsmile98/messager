@@ -4,7 +4,6 @@ import (
 	"gateway/internal/config"
 	"gateway/internal/server"
 	"log/slog"
-	"net/http"
 	"os"
 )
 
@@ -15,15 +14,11 @@ func main() {
 
 	if err != nil {
 		slog.Error("failed to load config", "error", err)
+		os.Exit(1)
 	}
 
-	router, err := server.NewRouter(conf)
-
-	if err != nil {
-		slog.Error("failed to create router", "error", err)
-	}
-
-	if err := http.ListenAndServe(":"+conf.Port, router); err != nil {
-		slog.Error("http server", "error", err)
+	if err := server.RunHTTPServer(conf); err != nil {
+		slog.Error("failed to run http server", "error", err)
+		os.Exit(1)
 	}
 }

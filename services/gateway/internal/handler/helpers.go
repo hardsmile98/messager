@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"google.golang.org/grpc/codes"
@@ -15,6 +17,13 @@ func writeJson(w http.ResponseWriter, status int, data interface{}) {
 }
 
 func writeGrpcError(w http.ResponseWriter, err error) {
+	if errors.Is(err, context.DeadlineExceeded) {
+		writeJson(w, http.StatusGatewayTimeout, map[string]string{
+			"error": "request timeout",
+		})
+		return
+	}
+
 	st, ok := status.FromError(err)
 
 	if !ok {
@@ -37,6 +46,8 @@ func writeGrpcError(w http.ResponseWriter, err error) {
 		httpStatus = http.StatusNotFound
 	case codes.AlreadyExists:
 		httpStatus = http.StatusConflict
+	case codes.DeadlineExceeded:
+		httpStatus = http.StatusGatewayTimeout
 	}
 
 	writeJson(w, httpStatus, map[string]string{

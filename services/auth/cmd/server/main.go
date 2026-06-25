@@ -20,6 +20,7 @@ func main() {
 
 	if err != nil {
 		slog.Error("failed to load config", "error", err)
+		os.Exit(1)
 	}
 
 	ctx := context.Background()
@@ -28,6 +29,7 @@ func main() {
 
 	if err != nil {
 		slog.Error("failed to initialize database pool", "error", err)
+		os.Exit(1)
 	}
 
 	redisClient := redis.NewClient(&redis.Options{
@@ -37,6 +39,7 @@ func main() {
 	if _, err := redisClient.Ping(ctx).Result(); err != nil {
 		slog.Error("failed to initialize redis", "error", err)
 		pool.Close()
+		os.Exit(1)
 	}
 
 	userRepo := repository.NewUserRepo(pool)

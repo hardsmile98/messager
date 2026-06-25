@@ -6,24 +6,11 @@ import (
 	"gateway/internal/middleware"
 	"net/http"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	pb "github.com/hardsmile98/messager/sdk/auth/v1"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
-func NewRouter(conf *config.Config) (http.Handler, error) {
-	authConnection, err := grpc.NewClient(
-		conf.AuthGRPCURL,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	authClient := pb.NewAuthServiceClient(authConnection)
-
+func newRouter(authClient pb.AuthServiceClient, conf *config.Config) http.Handler {
 	authHandler := handler.NewAuthHandler(authClient)
 
 	r := chi.NewRouter()
@@ -34,5 +21,5 @@ func NewRouter(conf *config.Config) (http.Handler, error) {
 	r.Post("/api/v1/auth/logout", authHandler.Logout)
 	r.Post("/api/v1/auth/refresh-token", authHandler.RefreshToken)
 
-	return r, nil
+	return r
 }
