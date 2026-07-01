@@ -17,7 +17,8 @@ func NewRouter(
 	chatClient pbChat.ChatServiceClient,
 	cfg *config.Config,
 ) http.Handler {
-	authHandler := handler.NewAuth(authClient, cfg)
+	authHandler := handler.NewAuthHandler(authClient, cfg)
+	chatHandler := handler.NewChatHandler(chatClient)
 
 	r := chi.NewRouter()
 	r.Use(middleware.CORS(cfg.CORSAllowedOrigins))
@@ -29,6 +30,10 @@ func NewRouter(
 		r.Use(middleware.RequireAuth(authClient))
 		r.Post("/api/v1/auth/logout", authHandler.Logout)
 		r.Post("/api/v1/auth/refresh-token", authHandler.RefreshToken)
+
+		r.Post("/api/v1/chats/private", chatHandler.CreatePrivateChat)
+		r.Get("/api/v1/chats", chatHandler.GetUserChats)
+		r.Get("/api/v1/chats/{chat_id}", chatHandler.GetChatInfo)
 	})
 
 	return r

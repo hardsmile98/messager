@@ -20,6 +20,10 @@ func AlreadyExists(msg string) error {
 	return status.Error(codes.AlreadyExists, msg)
 }
 
+func NotFound(msg string) error {
+	return status.Error(codes.NotFound, msg)
+}
+
 func InternalError(ctx context.Context, msg string, err error) error {
 	slog.ErrorContext(ctx, msg, "error", err)
 

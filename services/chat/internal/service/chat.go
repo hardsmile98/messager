@@ -1,13 +1,12 @@
 package service
 
 import (
+	"chat/internal/errors"
 	"chat/internal/repository"
 	"context"
 
 	pb "github.com/hardsmile98/messager/sdk/chat/v1"
 	commonpb "github.com/hardsmile98/messager/sdk/common/v1"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type ChatService struct {
@@ -27,13 +26,102 @@ func NewChatService(
 }
 
 func (s *ChatService) CreatePrivateChat(ctx context.Context, req *pb.CreatePrivateChatRequest) (*commonpb.Chat, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreatePrivateChat not implemented")
+	if req.InitiatorId == "" || req.TargetUserId == "" {
+		return nil, errors.InvalidArgument("initiator_id and target_user_id are required")
+	}
+
+	if req.InitiatorId == req.TargetUserId {
+		return nil, errors.InvalidArgument("cannot chat with yourself")
+	}
+
+	exists, err := s.chatRepo.ExistsChat(ctx, req.InitiatorId, req.TargetUserId)
+
+	if err != nil {
+		return nil, errors.InternalError(ctx, "failed to check if chat exists", err)
+	}
+
+	if exists {
+		return nil, errors.AlreadyExists("chat already exists")
+	}
+
+	chatID, err := s.chatRepo.CreatePrivateChat(ctx, req.InitiatorId, req.TargetUserId)
+
+	if err != nil {
+		return nil, errors.InternalError(ctx, "failed to create chat", err)
+	}
+
+	return &commonpb.Chat{
+		Id:   chatID,
+		Type: commonpb.ChatType_CHAT_TYPE_PRIVATE,
+	}, nil
 }
 
 func (s *ChatService) GetUserChats(ctx context.Context, req *pb.GetUserChatsRequest) (*pb.GetUserChatsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUserChats not implemented")
+
+	if req.UserId == "" {
+		return nil, errors.InvalidArgument("user_id is required")
+	}
+
+	rows, err := s.chatRepo.GetChatsByUserID(ctx, req.UserId, int(req.PageSize), req.PageToken)
+
+	if err != nil {
+		return nil, errors.InternalError(ctx, "failed to get chats", err)
+	}
+
+	var nextPageToken string
+	var chats []*commonpb.ChatInfo
+
+	if len(rows) > 0 {
+		nextPageToken = rows[len(rows)-1].ID
+	}
+
+	for _, chat := range rows {
+		chatInfo := &commonpb.ChatInfo{
+			Chat: &commonpb.Chat{
+				Id:   chat.ID,
+				Type: commonpb.ChatType_CHAT_TYPE_PRIVATE,
+				Members: []*commonpb.User{
+					{Id: chat.UserID, Username: chat.Username},
+				},
+			},
+		}
+		chats = append(chats, chatInfo)
+	}
+
+	return &pb.GetUserChatsResponse{
+		Chats:         chats,
+		NextPageToken: nextPageToken,
+	}, nil
 }
 
 func (s *ChatService) GetChatInfo(ctx context.Context, req *pb.GetChatInfoRequest) (*commonpb.ChatInfo, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetChatInfo not implemented")
+	if req.ChatId == "" || req.UserId == "" {
+		return nil, errors.InvalidArgument("chat_id and user_id are required")
+	}
+
+	ok, err := s.participantRepo.IsParticipant(ctx, req.ChatId, req.UserId)
+
+	if err != nil {
+		return nil, errors.InternalError(ctx, "failed to check if user is participant", err)
+	}
+
+	if !ok {
+		return nil, errors.NotFound("user is not a participant of the chat")
+	}
+
+	companionID, err := s.chatRepo.GetCompanionID(ctx, req.ChatId, req.UserId)
+
+	if err != nil {
+		return nil, errors.InternalError(ctx, "failed to get companion id", err)
+	}
+
+	return &commonpb.ChatInfo{
+		Chat: &commonpb.Chat{
+			Id:   req.ChatId,
+			Type: commonpb.ChatType_CHAT_TYPE_PRIVATE,
+			Members: []*commonpb.User{
+				{Id: companionID},
+			},
+		},
+	}, nil
 }

@@ -19,7 +19,7 @@ type Auth struct {
 	cookieConfig cookie.Settings
 }
 
-func NewAuth(client pb.AuthServiceClient, cfg *config.Config) *Auth {
+func NewAuthHandler(client pb.AuthServiceClient, cfg *config.Config) *Auth {
 	return &Auth{
 		client: client,
 		cookieConfig: cookie.Settings{
