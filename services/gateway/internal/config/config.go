@@ -14,6 +14,7 @@ import (
 type Config struct {
 	Port                  string
 	AuthGRPCURL           string
+	ChatGRPCURL           string
 	HTTPReadTimeout       time.Duration
 	HTTPWriteTimeout      time.Duration
 	HTTPIdleTimeout       time.Duration
@@ -84,6 +85,7 @@ func LoadConfig() (*Config, error) {
 	cfg := &Config{
 		Port:                  os.Getenv("PORT"),
 		AuthGRPCURL:           os.Getenv("AUTH_GRPC_URL"),
+		ChatGRPCURL:           os.Getenv("CHAT_GRPC_URL"),
 		HTTPReadTimeout:       httpReadTimeout,
 		HTTPWriteTimeout:      httpWriteTimeout,
 		HTTPIdleTimeout:       httpIdleTimeout,
@@ -107,6 +109,10 @@ func (c *Config) validate() error {
 
 	if c.AuthGRPCURL == "" {
 		return errors.New("AUTH_GRPC_URL is required")
+	}
+
+	if c.ChatGRPCURL == "" {
+		return errors.New("CHAT_GRPC_URL is required")
 	}
 
 	return nil

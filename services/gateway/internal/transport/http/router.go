@@ -8,10 +8,15 @@ import (
 	"gateway/internal/transport/http/middleware"
 
 	"github.com/go-chi/chi/v5"
-	pb "github.com/hardsmile98/messager/sdk/auth/v1"
+	pbAuth "github.com/hardsmile98/messager/sdk/auth/v1"
+	pbChat "github.com/hardsmile98/messager/sdk/chat/v1"
 )
 
-func NewRouter(authClient pb.AuthServiceClient, cfg *config.Config) http.Handler {
+func NewRouter(
+	authClient pbAuth.AuthServiceClient,
+	chatClient pbChat.ChatServiceClient,
+	cfg *config.Config,
+) http.Handler {
 	authHandler := handler.NewAuth(authClient, cfg)
 
 	r := chi.NewRouter()

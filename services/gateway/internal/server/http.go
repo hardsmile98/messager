@@ -30,9 +30,21 @@ func RunHTTPServer(conf *config.Config) error {
 		}
 	}()
 
+	chatConn, chatClient, err := client.DialChat(conf.ChatGRPCURL)
+
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err := chatConn.Close(); err != nil {
+			slog.Error("failed to close chat gRPC connection", "error", err)
+		}
+	}()
+
 	srv := &http.Server{
 		Addr:              ":" + conf.Port,
-		Handler:           httptransport.NewRouter(authClient, conf),
+		Handler:           httptransport.NewRouter(authClient, chatClient, conf),
 		ReadTimeout:       conf.HTTPReadTimeout,
 		WriteTimeout:      conf.HTTPWriteTimeout,
 		IdleTimeout:       conf.HTTPIdleTimeout,
