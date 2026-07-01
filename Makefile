@@ -1,4 +1,4 @@
-SERVICES := auth gateway
+SERVICES := auth chat gateway
 REGISTRY := localhost:5000
 
 up:
