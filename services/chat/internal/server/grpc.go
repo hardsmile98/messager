@@ -1,18 +1,17 @@
 package server
 
 import (
+	"chat/internal/config"
 	"crypto/tls"
 	"fmt"
-	"log/slog"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"auth/internal/config"
-	"auth/internal/repository"
+	pb "github.com/hardsmile98/messager/sdk/chat/v1"
 
-	pb "github.com/hardsmile98/messager/sdk/auth/v1"
+	"log/slog"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -21,11 +20,10 @@ import (
 )
 
 type Dependencies struct {
-	Config           *config.Config
-	RefreshTokenRepo repository.RefreshTokenRepository
+	Config *config.Config
 }
 
-func RunGrpcServer(port string, service pb.AuthServiceServer, deps Dependencies, cleanup func()) error {
+func RunGrpcServer(port string, service pb.ChatServiceServer, deps Dependencies, cleanup func()) error {
 	lis, err := net.Listen("tcp", ":"+port)
 
 	if err != nil {
@@ -49,7 +47,7 @@ func RunGrpcServer(port string, service pb.AuthServiceServer, deps Dependencies,
 
 	srv := grpc.NewServer(serverOptions...)
 
-	pb.RegisterAuthServiceServer(srv, service)
+	pb.RegisterChatServiceServer(srv, service)
 
 	healthServer := health.NewServer()
 	grpc_health_v1.RegisterHealthServer(srv, healthServer)
@@ -69,7 +67,7 @@ func RunGrpcServer(port string, service pb.AuthServiceServer, deps Dependencies,
 		}
 	}()
 
-	slog.Info("auth service started", "addr", lis.Addr().String())
+	slog.Info("chat service started", "addr", lis.Addr().String())
 
 	return srv.Serve(lis)
 }
