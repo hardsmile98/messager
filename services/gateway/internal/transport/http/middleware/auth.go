@@ -45,13 +45,6 @@ func RequireAuth(client pb.AuthServiceClient) func(http.Handler) http.Handler {
 
 			refreshToken := cookie.RefreshToken(r)
 
-			if refreshToken == "" {
-				response.JSON(w, http.StatusUnauthorized, map[string]string{
-					"error": "session required",
-				})
-				return
-			}
-
 			r = r.WithContext(context.WithValue(r.Context(), refreshTokenKey, refreshToken))
 
 			next.ServeHTTP(w, r)

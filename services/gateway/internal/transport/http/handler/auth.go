@@ -116,7 +116,7 @@ func (h *Auth) RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 	if !ok {
 		response.JSON(w, http.StatusUnauthorized, map[string]string{
-			"error": "session required",
+			"error": "refresh token required",
 		})
 		return
 	}
@@ -124,6 +124,7 @@ func (h *Auth) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	resp, err := h.client.RefreshToken(r.Context(), &pb.RefreshTokenRequest{
 		RefreshToken: refreshToken,
 	})
+
 	if err != nil {
 		response.GRPCError(w, err)
 		return

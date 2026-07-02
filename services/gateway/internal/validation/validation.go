@@ -5,23 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"reflect"
-	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
 
 var validate = validator.New()
-
-func init() {
-	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
-		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
-		if name == "" || name == "-" {
-			return fld.Name
-		}
-		return name
-	})
-}
 
 func DecodeAndValidate(r *http.Request, dest any) error {
 	if err := json.NewDecoder(r.Body).Decode(dest); err != nil {
@@ -59,6 +47,8 @@ func message(e validator.FieldError) string {
 		return fmt.Sprintf("%s must be at least %s characters", e.Field(), e.Param())
 	case "max":
 		return fmt.Sprintf("%s must be at most %s characters", e.Field(), e.Param())
+	case "uuid":
+		return fmt.Sprintf("%s must be a valid UUID", e.Field())
 	default:
 		return fmt.Sprintf("%s is invalid", e.Field())
 	}
