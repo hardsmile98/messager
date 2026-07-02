@@ -77,8 +77,6 @@ func (x *CreatePrivateChatRequest) GetTargetUserId() string {
 type GetUserChatsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	PageToken     string                 `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -120,24 +118,9 @@ func (x *GetUserChatsRequest) GetUserId() string {
 	return ""
 }
 
-func (x *GetUserChatsRequest) GetPageSize() int32 {
-	if x != nil {
-		return x.PageSize
-	}
-	return 0
-}
-
-func (x *GetUserChatsRequest) GetPageToken() string {
-	if x != nil {
-		return x.PageToken
-	}
-	return ""
-}
-
 type GetUserChatsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Chats         []*v1.ChatInfo         `protobuf:"bytes,1,rep,name=chats,proto3" json:"chats,omitempty"`
-	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -177,13 +160,6 @@ func (x *GetUserChatsResponse) GetChats() []*v1.ChatInfo {
 		return x.Chats
 	}
 	return nil
-}
-
-func (x *GetUserChatsResponse) GetNextPageToken() string {
-	if x != nil {
-		return x.NextPageToken
-	}
-	return ""
 }
 
 type GetChatInfoRequest struct {
@@ -245,15 +221,11 @@ const file_protos_chat_v1_chat_proto_rawDesc = "" +
 	"\x19protos/chat/v1/chat.proto\x12\achat.v1\x1a\x1dprotos/common/v1/common.proto\"c\n" +
 	"\x18CreatePrivateChatRequest\x12!\n" +
 	"\finitiator_id\x18\x01 \x01(\tR\vinitiatorId\x12$\n" +
-	"\x0etarget_user_id\x18\x02 \x01(\tR\ftargetUserId\"j\n" +
+	"\x0etarget_user_id\x18\x02 \x01(\tR\ftargetUserId\".\n" +
 	"\x13GetUserChatsRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n" +
-	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
-	"\n" +
-	"page_token\x18\x03 \x01(\tR\tpageToken\"i\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"A\n" +
 	"\x14GetUserChatsResponse\x12)\n" +
-	"\x05chats\x18\x01 \x03(\v2\x13.common.v1.ChatInfoR\x05chats\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"F\n" +
+	"\x05chats\x18\x01 \x03(\v2\x13.common.v1.ChatInfoR\x05chats\"F\n" +
 	"\x12GetChatInfoRequest\x12\x17\n" +
 	"\achat_id\x18\x01 \x01(\tR\x06chatId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId2\xe4\x01\n" +

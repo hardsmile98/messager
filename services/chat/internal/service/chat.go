@@ -1,7 +1,7 @@
 package service
 
 import (
-	"chat/internal/errors"
+	apperrors "chat/internal/errors"
 	"chat/internal/repository"
 	"context"
 
@@ -27,27 +27,27 @@ func NewChatService(
 
 func (s *ChatService) CreatePrivateChat(ctx context.Context, req *pb.CreatePrivateChatRequest) (*commonpb.Chat, error) {
 	if req.InitiatorId == "" || req.TargetUserId == "" {
-		return nil, errors.InvalidArgument("initiator_id and target_user_id are required")
+		return nil, apperrors.InvalidArgument("initiator_id and target_user_id are required")
 	}
 
 	if req.InitiatorId == req.TargetUserId {
-		return nil, errors.InvalidArgument("cannot chat with yourself")
+		return nil, apperrors.InvalidArgument("cannot chat with yourself")
 	}
 
-	exists, err := s.chatRepo.ExistsChat(ctx, req.InitiatorId, req.TargetUserId)
+	exists, err := s.chatRepo.ExistsPrivateChat(ctx, req.InitiatorId, req.TargetUserId)
 
 	if err != nil {
-		return nil, errors.InternalError(ctx, "failed to check if chat exists", err)
+		return nil, apperrors.InternalError(ctx, "failed to check if chat exists", err)
 	}
 
 	if exists {
-		return nil, errors.AlreadyExists("chat already exists")
+		return nil, apperrors.AlreadyExists("chat already exists")
 	}
 
 	chatID, err := s.chatRepo.CreatePrivateChat(ctx, req.InitiatorId, req.TargetUserId)
 
 	if err != nil {
-		return nil, errors.InternalError(ctx, "failed to create chat", err)
+		return nil, apperrors.InternalError(ctx, "failed to create chat", err)
 	}
 
 	return &commonpb.Chat{
@@ -57,26 +57,20 @@ func (s *ChatService) CreatePrivateChat(ctx context.Context, req *pb.CreatePriva
 }
 
 func (s *ChatService) GetUserChats(ctx context.Context, req *pb.GetUserChatsRequest) (*pb.GetUserChatsResponse, error) {
-
 	if req.UserId == "" {
-		return nil, errors.InvalidArgument("user_id is required")
+		return nil, apperrors.InvalidArgument("user_id is required")
 	}
 
-	rows, err := s.chatRepo.GetChatsByUserID(ctx, req.UserId, int(req.PageSize), req.PageToken)
+	rows, err := s.chatRepo.GetChatsByUserID(ctx, req.UserId)
 
 	if err != nil {
-		return nil, errors.InternalError(ctx, "failed to get chats", err)
+		return nil, apperrors.InternalError(ctx, "failed to get chats", err)
 	}
 
-	var nextPageToken string
-	var chats []*commonpb.ChatInfo
-
-	if len(rows) > 0 {
-		nextPageToken = rows[len(rows)-1].ID
-	}
+	chats := make([]*commonpb.ChatInfo, 0, len(rows))
 
 	for _, chat := range rows {
-		chatInfo := &commonpb.ChatInfo{
+		chats = append(chats, &commonpb.ChatInfo{
 			Chat: &commonpb.Chat{
 				Id:   chat.ID,
 				Type: commonpb.ChatType_CHAT_TYPE_PRIVATE,
@@ -84,35 +78,33 @@ func (s *ChatService) GetUserChats(ctx context.Context, req *pb.GetUserChatsRequ
 					{Id: chat.UserID, Username: chat.Username},
 				},
 			},
-		}
-		chats = append(chats, chatInfo)
+		})
 	}
 
 	return &pb.GetUserChatsResponse{
-		Chats:         chats,
-		NextPageToken: nextPageToken,
+		Chats: chats,
 	}, nil
 }
 
 func (s *ChatService) GetChatInfo(ctx context.Context, req *pb.GetChatInfoRequest) (*commonpb.ChatInfo, error) {
 	if req.ChatId == "" || req.UserId == "" {
-		return nil, errors.InvalidArgument("chat_id and user_id are required")
+		return nil, apperrors.InvalidArgument("chat_id and user_id are required")
 	}
 
 	ok, err := s.participantRepo.IsParticipant(ctx, req.ChatId, req.UserId)
 
 	if err != nil {
-		return nil, errors.InternalError(ctx, "failed to check if user is participant", err)
+		return nil, apperrors.InternalError(ctx, "failed to check if user is participant", err)
 	}
 
 	if !ok {
-		return nil, errors.NotFound("user is not a participant of the chat")
+		return nil, apperrors.NotFound("user is not a participant of the chat")
 	}
 
 	companionID, err := s.chatRepo.GetCompanionID(ctx, req.ChatId, req.UserId)
 
 	if err != nil {
-		return nil, errors.InternalError(ctx, "failed to get companion id", err)
+		return nil, apperrors.InternalError(ctx, "failed to get companion id", err)
 	}
 
 	return &commonpb.ChatInfo{

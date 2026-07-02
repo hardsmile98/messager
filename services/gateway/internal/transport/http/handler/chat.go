@@ -45,17 +45,8 @@ func (h *ChatHandler) CreatePrivateChat(w http.ResponseWriter, r *http.Request) 
 func (h *ChatHandler) GetUserChats(w http.ResponseWriter, r *http.Request) {
 	userID, _ := middleware.UserIDFromContext(r)
 
-	var req dto.GetUserChatsRequest
-
-	if err := validation.DecodeAndValidate(r, &req); err != nil {
-		response.RequestError(w, err)
-		return
-	}
-
 	resp, err := h.client.GetUserChats(r.Context(), &pb.GetUserChatsRequest{
-		UserId:    userID,
-		PageSize:  req.PageSize,
-		PageToken: req.PageToken,
+		UserId: userID,
 	})
 
 	if err != nil {

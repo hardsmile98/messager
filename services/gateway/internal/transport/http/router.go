@@ -25,11 +25,11 @@ func NewRouter(
 
 	r.Post("/api/v1/auth/register", authHandler.Register)
 	r.Post("/api/v1/auth/login", authHandler.Login)
+	r.Post("/api/v1/auth/refresh-token", authHandler.RefreshToken)
 
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.RequireAuth(authClient))
 		r.Post("/api/v1/auth/logout", authHandler.Logout)
-		r.Post("/api/v1/auth/refresh-token", authHandler.RefreshToken)
 
 		r.Post("/api/v1/chats/private", chatHandler.CreatePrivateChat)
 		r.Get("/api/v1/chats", chatHandler.GetUserChats)

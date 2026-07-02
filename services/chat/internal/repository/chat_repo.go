@@ -10,9 +10,9 @@ import (
 )
 
 type ChatRepository interface {
-	ExistsChat(ctx context.Context, userID1, userID2 string) (bool, error)
+	ExistsPrivateChat(ctx context.Context, userID1, userID2 string) (bool, error)
 	CreatePrivateChat(ctx context.Context, userID1, userID2 string) (string, error)
-	GetChatsByUserID(ctx context.Context, userID string, pageSize int, pageToken string) ([]model.ChatInfo, error)
+	GetChatsByUserID(ctx context.Context, userID string) ([]model.ChatInfo, error)
 	GetCompanionID(ctx context.Context, chatID, userID string) (string, error)
 }
 
@@ -24,11 +24,17 @@ func NewChatRepo(pool *pgxpool.Pool) *ChatRepo {
 	return &ChatRepo{pool}
 }
 
-func (r *ChatRepo) ExistsChat(ctx context.Context, userID1, userID2 string) (bool, error) {
+func (r *ChatRepo) ExistsPrivateChat(ctx context.Context, userID1, userID2 string) (bool, error) {
 	var exists bool
 
 	query := `
-		SELECT EXISTS(SELECT 1 FROM chat_members WHERE user_id = $1 AND user_id = $2)
+		SELECT EXISTS(
+			SELECT 1
+			FROM chats c
+			JOIN chat_members cm1 ON c.id = cm1.chat_id AND cm1.user_id = $1
+			JOIN chat_members cm2 ON c.id = cm2.chat_id AND cm2.user_id = $2
+			WHERE c.type = 1
+		)
 	`
 
 	err := r.pool.QueryRow(ctx, query, userID1, userID2).Scan(&exists)
@@ -74,19 +80,17 @@ func (r *ChatRepo) CreatePrivateChat(ctx context.Context, userID1, userID2 strin
 	return chatID, nil
 }
 
-func (r *ChatRepo) GetChatsByUserID(ctx context.Context, userID string, pageSize int, pageToken string) ([]model.ChatInfo, error) {
+func (r *ChatRepo) GetChatsByUserID(ctx context.Context, userID string) ([]model.ChatInfo, error) {
 	query := `
-		SELECT chats.id, chats.type, chats.created_at, users.id, users.username
-		FROM chats
-		JOIN chat_members ON chats.id = chat_members.chat_id
-		JOIN users ON chat_members.user_id = users.id
-		WHERE chat_members.user_id = $1
-		ORDER BY chats.created_at DESC
-		LIMIT $2
-		OFFSET $3
+		SELECT c.id, c.type, c.created_at, u.id, u.username
+		FROM chats c
+		JOIN chat_members cm_self ON cm_self.chat_id = c.id AND cm_self.user_id = $1
+		JOIN chat_members cm_other ON cm_other.chat_id = c.id AND cm_other.user_id != $1
+		JOIN users u ON u.id = cm_other.user_id
+		ORDER BY c.created_at DESC
 	`
 
-	rows, err := r.pool.Query(ctx, query, userID, pageSize, pageToken)
+	rows, err := r.pool.Query(ctx, query, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -97,12 +101,15 @@ func (r *ChatRepo) GetChatsByUserID(ctx context.Context, userID string, pageSize
 	for rows.Next() {
 		var chat model.ChatInfo
 
-		err = rows.Scan(&chat.ID, &chat.Type, &chat.CreatedAt, &chat.UserID, &chat.Username)
-
-		if err != nil {
+		if err := rows.Scan(&chat.ID, &chat.Type, &chat.CreatedAt, &chat.UserID, &chat.Username); err != nil {
 			return nil, err
 		}
+
 		chats = append(chats, chat)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return chats, nil
